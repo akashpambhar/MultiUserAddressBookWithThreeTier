@@ -83,13 +83,13 @@ public class CityBAL
 
     #region Select Operation
 
-    #region SelectAll
-    public DataTable SelectAll()
+    #region SelectAllByUserID
+    public DataTable SelectAllByUserID(SqlInt32 UserID)
     {
         CityDAL dalCity = new CityDAL();
-        return dalCity.SelectAll();
+        return dalCity.SelectAllByUserID(UserID);
     }
-    #endregion SelectAll
+    #endregion SelectAllByUserID
 
     #region Select For Dropdown List
     public DataTable SelectForDropdownList()

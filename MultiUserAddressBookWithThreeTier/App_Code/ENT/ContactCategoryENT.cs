@@ -15,10 +15,7 @@ namespace MultiUserAddressBook.ENT
 
         public ContactCategoryENT()
         {
-            _ContactCategoryID = SqlInt32.Null;
-            _ContactCategoryName = SqlString.Null;
-            _CreationDate = SqlDateTime.Null;
-            _UserID = SqlInt32.Null;
+            
         }
 
         #endregion

@@ -15,19 +15,7 @@ namespace MultiUserAddressBook.ENT
 
         public ContactENT()
         {
-            _ContactID = SqlInt32.Null;
-            _ContactName = SqlString.Null;
-            _Address = SqlString.Null;
-            _Pincode = SqlString.Null;
-            _CityID = SqlInt32.Null;
-            _StateID = SqlInt32.Null;
-            _CountryID = SqlInt32.Null;
-            _EmailAddress = SqlString.Null;
-            _MobileNo = SqlString.Null;
-            _FacebookID = SqlString.Null;
-            _LinkedInID = SqlString.Null;
-            _CreationDate = SqlDateTime.Null;
-            _UserID = SqlInt32.Null;
+            
         }
 
         #endregion

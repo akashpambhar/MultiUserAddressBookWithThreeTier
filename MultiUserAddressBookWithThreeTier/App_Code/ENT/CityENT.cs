@@ -15,13 +15,7 @@ namespace MultiUserAddressBook.ENT
 
         public CityENT()
         {
-            _CityID = SqlInt32.Null;
-            _StateID = SqlInt32.Null;
-            _CityName = SqlString.Null;
-            _Pincode = SqlString.Null;
-            _STDCode = SqlString.Null;
-            _CreationDate = SqlDateTime.Null;
-            _UserID = SqlInt32.Null;
+            
         }
 
         #endregion

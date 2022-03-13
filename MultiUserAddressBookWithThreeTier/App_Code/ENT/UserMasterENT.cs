@@ -15,17 +15,7 @@ namespace MultiUserAddressBook.ENT
 
         public UserMasterENT()
         {
-            _UserID = SqlInt32.Null;
-            _UserName = SqlString.Null;
-            _Password = SqlString.Null;
-            _FullName = SqlString.Null;
-            _Address = SqlString.Null;
-            _MobileNo = SqlString.Null;
-            _EmailID = SqlString.Null;
-            _FacebookID = SqlString.Null;
-            _BirthDate = SqlDateTime.Null;
-            _PhotoPath = SqlString.Null;
-            _CreationDate = SqlDateTime.Null;
+           
         }
 
         #endregion

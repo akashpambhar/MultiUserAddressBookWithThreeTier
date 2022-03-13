@@ -15,9 +15,7 @@ namespace MultiUserAddressBook.ENT
 
         public ContactWiseContactCategoryENT()
         {
-            _ContactWiseContactCategoryID = SqlInt32.Null;
-            _ContactID = SqlInt32.Null;
-            _ContactCategoryID = SqlInt32.Null;
+           
         }
 
         #endregion

@@ -15,11 +15,7 @@ namespace MultiUserAddressBook.ENT
 
         public CountryENT()
         {
-            _CountryID = SqlInt32.Null;
-            _CountryName = SqlString.Null;
-            _CountryCode = SqlString.Null;
-            _CreationDate = SqlDateTime.Null;
-            _UserID = SqlInt32.Null;
+            
         }
 
         #endregion

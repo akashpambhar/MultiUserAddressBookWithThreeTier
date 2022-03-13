@@ -21,41 +21,22 @@ public partial class AdminPanel_Country_CountryList : System.Web.UI.Page
                 FillCountryGridView(Convert.ToInt32(Session["UserID"].ToString()));
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     private void FillCountryGridView(Int32 UserID)
     {
         #region Get All Countries By UserID
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        CountryBAL balCountry = new CountryBAL();
+        DataTable dtCountry = new DataTable();
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_Country_SelectAllByUserID";
+        dtCountry = balCountry.SelectAllByUserID(UserID);
 
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
+        gvCountryList.DataSource = dtCountry;
+        gvCountryList.DataBind();
 
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            gvCountryList.DataSource = objSDR;
-            gvCountryList.DataBind();
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
-
-        #endregion
+        #endregion Get All Countries By UserID
     }
 
     protected void gvCountryList_RowCommand(object sender, GridViewCommandEventArgs e)
@@ -68,35 +49,22 @@ public partial class AdminPanel_Country_CountryList : System.Web.UI.Page
             FillCountryGridView(Convert.ToInt32(Session["UserID"].ToString()));
         }
 
-        #endregion
+        #endregion Handle Delete Action from GridView
     }
     private void DeleteRecord(Int32 CountryID)
     {
         #region Delete Country By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        CountryBAL balCountry = new CountryBAL();
+        if (balCountry.Delete(CountryID))
         {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_Country_DeleteByPK";
-            objCmd.Parameters.AddWithValue("@CountryID", CountryID);
-
-            objCmd.ExecuteNonQuery();
+            lblErrorMessage.Text = "Deleted Successfully!";
         }
-        catch (Exception ex)
+        else
         {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
+            lblErrorMessage.Text = balCountry.Message;
         }
 
-        #endregion
+        #endregion Delete Country By PK
     }
 }

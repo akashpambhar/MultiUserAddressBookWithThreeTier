@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiUserAddressBook.ENT;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -21,11 +22,11 @@ public partial class AdminPanel_Country_CountryAddEdit : System.Web.UI.Page
             {
                 if (Page.RouteData.Values["CountryID"] != null)
                 {
-                    LoadControls();
+                    LoadControls(Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["CountryID"].ToString())));
                 }
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     protected void btnSave_Click(object sender, EventArgs e)
@@ -47,90 +48,56 @@ public partial class AdminPanel_Country_CountryAddEdit : System.Web.UI.Page
 
         #endregion Server Side Validation
 
-        #region Local Variables
-
-        SqlString strCountryName = SqlString.Null;
-        SqlString strCountryCode = SqlString.Null;
-
-        #endregion Local Variables
-
         #region Gather Information
+
+        CountryENT entCountry = new CountryENT();
 
         if (txtCountryName.Text.Trim() != "")
         {
-            strCountryName = txtCountryName.Text.Trim();
+            entCountry.CountryName = txtCountryName.Text.Trim();
         }
         if (txtCountryCode.Text.Trim() != "")
         {
-            strCountryCode = txtCountryCode.Text.Trim();
+            entCountry.CountryCode = txtCountryCode.Text.Trim();
         }
 
-        #endregion
+        #endregion Gather Information
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        #region Check and Perform Insert or Update Country
+
+        CountryBAL balCountry = new CountryBAL();
+
+        if (Page.RouteData.Values["CountryID"] != null)
         {
-            #region Open Connection and Set up Command
+            entCountry.CountryID = Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["CountryID"].ToString()));
 
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-
-            #endregion
-
-            #region Common Parameters to pass
-
-            objCmd.Parameters.AddWithValue("@CountryName", strCountryName);
-            objCmd.Parameters.AddWithValue("@CountryCode", strCountryCode);
-
-            #endregion
-
-            #region Check and Perform Insert or Update Country
-
-            if (Page.RouteData.Values["CountryID"] != null)
+            if (balCountry.Update(entCountry))
             {
-                objCmd.CommandText = "PR_Country_UpdateByPK";
-                objCmd.Parameters.AddWithValue("@CountryID", Page.RouteData.Values["CountryID"]);
+                lblErrorMessage.Text = "Updated Successfully!";
             }
             else
             {
-                objCmd.CommandText = "PR_Country_Insert";
-                if (Session["UserID"] != null)
-                {
-                    objCmd.Parameters.AddWithValue("@UserID", Convert.ToInt32(Session["UserID"].ToString().Trim()));
-                }
-                objCmd.Parameters.AddWithValue("@CreationDate", DateTime.Now);
+                lblErrorMessage.Text = balCountry.Message;
+            }
+        }
+        else
+        {
+            if (Session["UserID"] != null)
+            {
+                entCountry.UserID = Convert.ToInt32(Session["UserID"].ToString().Trim());
             }
 
-            objCmd.ExecuteNonQuery();
-
-            #endregion
-
-            lblErrorMessage.Text = "Data recorded successfully!";
-        }
-        catch (SqlException sqlEx)
-        {
-            #region Set Error Message
-
-            if (sqlEx.Number == 2627)
+            if (balCountry.Insert(entCountry))
             {
-                lblErrorMessage.Text = "You have already created a Country with same name";
-                clearFields();
+                lblErrorMessage.Text = "Inserted Successfully!";
             }
             else
             {
-                lblErrorMessage.Text = sqlEx.Message.ToString();
+                lblErrorMessage.Text = balCountry.Message;
             }
+        }
 
-            #endregion
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Check and Perform Insert or Update Country
 
         #region Clear Fields or Redirect
 
@@ -143,7 +110,7 @@ public partial class AdminPanel_Country_CountryAddEdit : System.Web.UI.Page
             Response.Redirect("~/AB/AdminPanel/Country");
         }
 
-        #endregion
+        #endregion Clear Fields or Redirect
     }
     private void clearFields()
     {
@@ -154,56 +121,28 @@ public partial class AdminPanel_Country_CountryAddEdit : System.Web.UI.Page
     {
         Response.Redirect("~/AB/AdminPanel/Country");
     }
-    private void LoadControls()
+    private void LoadControls(Int32 CountryID)
     {
-        string CountryID = EncryptDecrypt.Base64Decode(Page.RouteData.Values["CountryID"].ToString());
+        #region Get Country By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        CountryENT entCountry = new CountryENT();
+        CountryBAL balCountry = new CountryBAL();
+
+        entCountry = balCountry.SelectByPK(CountryID);
+
+        #endregion Get Country By PK
+
+        #region Set obtained values to controls
+
+        if (!entCountry.CountryName.IsNull)
         {
-            #region Get Country By PK
-
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_Country_SelectByPK";
-
-            objCmd.Parameters.AddWithValue("@CountryID", CountryID);
-
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            #endregion
-
-            #region Set obtained values to controls
-
-            if (objSDR.HasRows)
-            {
-                while (objSDR.Read())
-                {
-                    if (!objSDR["CountryName"].Equals(DBNull.Value))
-                    {
-                        txtCountryName.Text = objSDR["CountryName"].ToString();
-                    }
-                    if (!objSDR["CountryCode"].Equals(DBNull.Value))
-                    {
-                        txtCountryCode.Text = objSDR["CountryCode"].ToString();
-                    }
-                    break;
-                }
-            }
-
-            #endregion
+            txtCountryName.Text = entCountry.CountryName.ToString();
         }
-        catch (Exception ex)
+        if (!entCountry.CountryCode.IsNull)
         {
-            lblErrorMessage.Text = ex.Message.ToString();
+            txtCountryCode.Text = entCountry.CountryCode.ToString();
         }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+
+        #endregion Set obtained values to controls
     }
 }
