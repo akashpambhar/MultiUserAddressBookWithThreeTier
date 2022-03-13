@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiUserAddressBook.ENT;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -22,12 +23,12 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
                 CommonFillDropDown.FillCountryDropDownList(ddlCountryID, lblErrorMessage, Convert.ToInt32(Session["UserID"].ToString()));
                 if (Page.RouteData.Values["CityID"] != null)
                 {
-                    LoadControls(Page.RouteData.Values["CityID"].ToString());
+                    LoadControls(Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["CityID"].ToString())));
                     CommonFillDropDown.FillStateDropDownList(ddlStateID, lblErrorMessage, Convert.ToInt32(Session["UserID"].ToString()), Convert.ToInt32(ddlCountryID.SelectedValue));
                 }
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     protected void ddlCountryID_SelectedIndexChanged(object sender, EventArgs e)
@@ -63,105 +64,67 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
 
         #endregion Server Side Validation
 
-        #region Local Variables
-
-        SqlString strCityName = SqlString.Null;
-        SqlString strPincode = SqlString.Null;
-        SqlString strSTDCode = SqlString.Null;
-        SqlInt32 strStateID = SqlInt32.Null;
-
-        #endregion Local Variables
-
         #region Gather Information
+
+        CityENT entCity = new CityENT();
 
         if (txtCityName.Text.Trim() != "")
         {
-            strCityName = txtCityName.Text.Trim();
+            entCity.CityName = txtCityName.Text.Trim();
         }
         if (txtPincode.Text.Trim() != "")
         {
-            strPincode = txtPincode.Text.Trim();
+            entCity.Pincode = txtPincode.Text.Trim();
         }
         if (txtSTDCode.Text.Trim() != "")
         {
-            strSTDCode = txtSTDCode.Text.Trim();
+            entCity.STDCode = txtSTDCode.Text.Trim();
         }
         if (ddlStateID.SelectedIndex > 0)
         {
-            strStateID = Convert.ToInt32(ddlStateID.SelectedValue);
+            entCity.StateID = Convert.ToInt32(ddlStateID.SelectedValue);
         }
 
         #endregion Gather Information
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        #region Check and Perform Insert or Update City
+
+        CityBAL balCity = new CityBAL();
+
+        if (Page.RouteData.Values["CityID"] != null)
         {
-            #region Open Connection and Set up Command
-
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-
-            #endregion
-
-            #region Common Parameters to pass
-
-            objCmd.Parameters.AddWithValue("@CityName", strCityName);
-            objCmd.Parameters.AddWithValue("@Pincode", strPincode);
-            objCmd.Parameters.AddWithValue("@STDCode", strSTDCode);
-            objCmd.Parameters.AddWithValue("@StateID", strStateID);
-
-            #endregion
-
-            #region Check and Perform Insert or Update City
-
             if (Page.RouteData.Values["CityID"] != null)
             {
-                objCmd.CommandText = "PR_City_UpdateByPK";
-                if (Page.RouteData.Values["CityID"] != null)
-                {
-                    objCmd.Parameters.AddWithValue("@CityID", Page.RouteData.Values["CityID"]);
-                }
+                entCity.CityID = Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["CityID"].ToString()));
+            }
+
+            if (balCity.Update(entCity))
+            {
+                lblErrorMessage.Text = "Updated Successfully!";
             }
             else
             {
-                objCmd.CommandText = "PR_City_Insert";
-                if (Session["UserID"] != null)
-                {
-                    objCmd.Parameters.AddWithValue("@UserID", Convert.ToInt32(Session["UserID"].ToString().Trim()));
-                }
-                objCmd.Parameters.AddWithValue("@CreationDate", DateTime.Now);
+                lblErrorMessage.Text = balCity.Message;
+            }
+        }
+        else
+        {
+            if (Session["UserID"] != null)
+            {
+                entCity.UserID = Convert.ToInt32(Session["UserID"].ToString().Trim());
             }
 
-            objCmd.ExecuteNonQuery();
-
-            #endregion
-
-            lblErrorMessage.Text = "Data recorded successfully!";
-        }
-        catch (SqlException sqlEx)
-        {
-            #region Set Error Message
-
-            if (sqlEx.Number == 2627)
+            if (balCity.Insert(entCity))
             {
-                lblErrorMessage.Text = "You have already created a City with same name in same State";
-                clearFields();
+                lblErrorMessage.Text = "Inserted Successfully!";
             }
             else
             {
-                lblErrorMessage.Text = sqlEx.Message.ToString();
+                lblErrorMessage.Text = balCity.Message;
             }
+        }
 
-            #endregion
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Check and Perform Insert or Update City
 
         #region Clear Fields or Redirect
 
@@ -174,7 +137,7 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
             Response.Redirect("~/AB/AdminPanel/City");
         }
 
-        #endregion
+        #endregion Clear Fields or Redirect
     }
     private void clearFields()
     {
@@ -188,68 +151,44 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
     {
         Response.Redirect("~/AB/AdminPanel/City");
     }
-    private void LoadControls(String CityID)
+    private void LoadControls(Int32 CityID)
     {
-        CityID = EncryptDecrypt.Base64Decode(CityID);
+        #region Get City By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        CityENT entCity = new CityENT();
+        StateENT entState = new StateENT();
+
+        CityBAL balCity = new CityBAL();
+        StateBAL balState = new StateBAL();
+
+        entCity = balCity.SelectByPK(CityID);
+
+        #endregion Get City By PK
+
+        #region Set obtained values to controls
+
+        if (!entCity.CityName.IsNull)
         {
-            #region Get City By PK
-
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_City_SelectByPK";
-
-            objCmd.Parameters.AddWithValue("@CityID", CityID);
-
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            #endregion
-
-            #region Set obtained values to controls
-
-            if (objSDR.HasRows)
-            {
-                while (objSDR.Read())
-                {
-                    if (!objSDR["CityName"].Equals(DBNull.Value))
-                    {
-                        txtCityName.Text = objSDR["CityName"].ToString();
-                    }
-                    if (!objSDR["Pincode"].Equals(DBNull.Value))
-                    {
-                        txtPincode.Text = objSDR["Pincode"].ToString();
-                    }
-                    if (!objSDR["STDCode"].Equals(DBNull.Value))
-                    {
-                        txtSTDCode.Text = objSDR["STDCode"].ToString();
-                    }
-                    if (!objSDR["CountryID"].Equals(DBNull.Value))
-                    {
-                        ddlCountryID.SelectedValue = objSDR["CountryID"].ToString();
-                    }
-                    if (!objSDR["StateID"].Equals(DBNull.Value))
-                    {
-                        ddlStateID.SelectedValue = objSDR["StateID"].ToString();
-                    }
-                    break;
-                }
-            }
-
-            #endregion
+            txtCityName.Text = entCity.CityName.ToString();
         }
-        catch (Exception ex)
+        if (!entCity.Pincode.IsNull)
         {
-            lblErrorMessage.Text = ex.Message.ToString();
+            txtPincode.Text = entCity.Pincode.ToString();
         }
-        finally
+        if (!entCity.STDCode.IsNull)
         {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
+            txtSTDCode.Text = entCity.STDCode.ToString();
         }
+        if (!entCity.StateID.IsNull)
+        {
+            entState = balState.SelectByPK(entCity.StateID);
+            ddlStateID.SelectedValue = entState.StateID.ToString();
+        }
+        if (!entState.CountryID.IsNull)
+        {
+            ddlCountryID.SelectedValue = entState.CountryID.ToString();
+        }
+
+        #endregion Set obtained values to controls
     }
 }

@@ -284,6 +284,9 @@ namespace MultiUserAddressBook.DAL
                         {
                             while (objSDR.Read())
                             {
+                                if (!objSDR["StateID"].Equals(DBNull.Value))
+                                    entState.StateID = Convert.ToInt32(objSDR["StateID"]);
+
                                 if (!objSDR["CountryID"].Equals(DBNull.Value))
                                     entState.CountryID = Convert.ToInt32(objSDR["CountryID"]);
 

@@ -21,41 +21,22 @@ public partial class AdminPanel_City_CityList : System.Web.UI.Page
                 FillCityGridView(Convert.ToInt32(Session["UserID"].ToString()));
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     private void FillCityGridView(Int32 UserID)
     {
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            #region Get All Cities By UserID
+        #region Get All Cities By UserID
 
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        CityBAL balCity = new CityBAL();
+        DataTable dtCity = new DataTable();
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_City_SelectAllByUserID";
+        dtCity = balCity.SelectAllByUserID(UserID);
 
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
+        gvCityList.DataSource = dtCity;
+        gvCityList.DataBind();
 
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            gvCityList.DataSource = objSDR;
-            gvCityList.DataBind();
-
-            #endregion
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Get All Cities By UserID
     }
     protected void gvCityList_RowCommand(object sender, GridViewCommandEventArgs e)
     {
@@ -70,35 +51,22 @@ public partial class AdminPanel_City_CityList : System.Web.UI.Page
             }
         }
 
-        #endregion
+        #endregion Handle Delete Action from GridView
     }
     private void DeleteRecord(Int32 CityID)
     {
         #region Delete City By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        CityBAL balCity = new CityBAL();
+        if (balCity.Delete(CityID))
         {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_City_DeleteByPK";
-            objCmd.Parameters.AddWithValue("@CityID", CityID);
-
-            objCmd.ExecuteNonQuery();
+            lblErrorMessage.Text = "Deleted Successfully!";
         }
-        catch (Exception ex)
+        else
         {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
+            lblErrorMessage.Text = balCity.Message;
         }
 
-        #endregion
+        #endregion Delete City By PK
     }
 }
