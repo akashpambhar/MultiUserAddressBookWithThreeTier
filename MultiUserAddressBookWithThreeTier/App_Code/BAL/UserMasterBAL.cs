@@ -107,5 +107,13 @@ public class UserMasterBAL
     }
     #endregion SelectByPK
 
+    #region SelectByUserNamePassword
+    public DataTable SelectByUserNamePassword(UserMasterENT entUserMaster)
+    {
+        UserMasterDAL dalUserMaster = new UserMasterDAL();
+        return dalUserMaster.SelectByUserNamePassword(entUserMaster);
+    }
+    #endregion SelectByUserNamePassword
+
     #endregion Select Operation
 }

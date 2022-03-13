@@ -353,6 +353,59 @@ namespace MultiUserAddressBook.DAL
         }
         #endregion SelectByPK
 
+        #region SelectByUserNamePassword
+        public DataTable SelectByUserNamePassword(UserMasterENT entUserMaster)
+        {
+            using (SqlConnection objConn = new SqlConnection(ConnectionString))
+            {
+                objConn.Open();
+
+                using (SqlCommand objCmd = objConn.CreateCommand())
+                {
+                    try
+                    {
+                        #region Prepare Command
+
+                        objCmd.CommandType = CommandType.StoredProcedure;
+                        objCmd.CommandText = "PR_UserMaster_SelectByUserNamePassword";
+
+                        objCmd.Parameters.AddWithValue("@UserName", entUserMaster.UserName);
+                        objCmd.Parameters.AddWithValue("@Password", entUserMaster.Password);
+
+                        #endregion Prepare Command
+
+                        #region Read Data and return DataTable
+
+                        DataTable dt = new DataTable();
+
+                        using (SqlDataReader objSDR = objCmd.ExecuteReader())
+                        {
+                            dt.Load(objSDR);
+                        }
+                        return dt;
+
+                        #endregion Read Data and return DataTable
+                    }
+                    catch (SqlException sqlex)
+                    {
+                        Message = sqlex.InnerException.Message;
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        Message = ex.InnerException.Message;
+                        return null;
+                    }
+                    finally
+                    {
+                        if (objConn.State == ConnectionState.Open)
+                            objConn.Close();
+                    }
+                }
+            }
+        }
+        #endregion SelectByUserNamePassword
+
         #endregion Select Operation
     }
 }

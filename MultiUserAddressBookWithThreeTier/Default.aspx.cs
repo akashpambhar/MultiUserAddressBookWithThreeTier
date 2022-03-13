@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiUserAddressBook.ENT;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -19,68 +20,83 @@ public partial class _Default : System.Web.UI.Page
     }
     protected void btnLogin_Click(object sender, EventArgs e)
     {
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        #region Server Side Validation
+
+        String strErrorMessage = "";
+
+        if (txtUserName.Text.Trim() == "")
         {
-            #region Get User By UserName and Password
+            strErrorMessage += "Enter User Name <br/>";
+        }
+        if (txtPassword.Text.Trim() == "")
+        {
+            strErrorMessage += "Enter Password <br/>";
+        }
+        if (strErrorMessage != "")
+        {
+            lblErrorMessage.Text = strErrorMessage;
+            return;
+        }
 
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        #endregion Server Side Validation
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_UserMaster_SelectByUserNamePassword";
+        #region Gather Information
 
-            objCmd.Parameters.AddWithValue("@UserName", txtUserName.Text.Trim());
-            objCmd.Parameters.AddWithValue("@Password", txtPassword.Text.Trim());
+        UserMasterENT entUserMaster = new UserMasterENT();
 
-            SqlDataReader objSDR = objCmd.ExecuteReader();
+        if (txtUserName.Text.Trim() != "")
+        {
+            entUserMaster.UserName = txtUserName.Text.Trim();
+        }
+        if (txtPassword.Text.Trim() != "")
+        {
+            entUserMaster.Password = txtPassword.Text.Trim();
+        }
 
-            DataTable dtUser = new DataTable();
-            dtUser.Load(objSDR);
-            
-            #endregion
+        #endregion Gather Information
 
-            #region Validate User
+        #region Get User By UserName and Password
 
-            if (dtUser != null && dtUser.Rows.Count > 0)
+        UserMasterBAL balUserMaster = new UserMasterBAL();
+        DataTable dtUserMaster = new DataTable();
+
+        dtUserMaster = balUserMaster.SelectByUserNamePassword(entUserMaster);
+
+        if (dtUserMaster != null && dtUserMaster.Rows.Count > 0)
+        {
+            foreach (DataRow drUserMaster in dtUserMaster.Rows)
             {
-                foreach (DataRow drUser in dtUser.Rows)
+                if (!drUserMaster["UserID"].Equals(DBNull.Value))
                 {
-                    if (!drUser["UserID"].Equals(DBNull.Value))
-                    {
-                        Session["UserID"] = drUser["UserID"].ToString();
-                    }
-                    if (!drUser["UserName"].Equals(DBNull.Value))
-                    {
-                        Session["UserName"] = drUser["UserName"].ToString();
-                    }
-                    if (!drUser["PhotoPath"].Equals(DBNull.Value))
-                    {
-                        Session["PhotoPath"] = drUser["PhotoPath"].ToString();
-                    }
-                    break;
+                    Session["UserID"] = drUserMaster["UserID"].ToString();
                 }
-                Response.Redirect("~/AB/AdminPanel/Contact");
+                if (!drUserMaster["UserName"].Equals(DBNull.Value))
+                {
+                    Session["UserName"] = drUserMaster["UserName"].ToString();
+                }
+                if (!drUserMaster["PhotoPath"].Equals(DBNull.Value))
+                {
+                    Session["PhotoPath"] = drUserMaster["PhotoPath"].ToString();
+                }
+                break;
+            }
+            Response.Redirect("~/AB/AdminPanel/Contact");
+        }
+        else
+        {
+            if (balUserMaster.Message == null)
+            {
+                lblErrorMessage.Text = "Either Username or Password is not wrong, please try again";
             }
             else
             {
-                lblErrorMessage.Text = "Either Username or Password is not wrong, please try again";
-                txtUserName.Text = "";
-                txtPassword.Text = "";
-                txtUserName.Focus();
+                lblErrorMessage.Text = balUserMaster.Message;
             }
+            txtUserName.Text = "";
+            txtPassword.Text = "";
+            txtUserName.Focus();
+        }
 
-            #endregion
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Get User By UserName and Password
     }
 }
