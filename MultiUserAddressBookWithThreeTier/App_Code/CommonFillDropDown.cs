@@ -14,122 +14,72 @@ public static class CommonFillDropDown
 {
     public static void FillCountryDropDownList(DropDownList ddlCountryID, Label lblErrorMessage, Int32 UserID)
     {
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        ddlCountryID.Items.Clear();
+
+        #region Get All Countries By UserID
+
+        CountryBAL balCountry = new CountryBAL();
+        DataTable dtCountry = new DataTable();
+
+        dtCountry = balCountry.SelectAllByUserID(UserID);
+
+        if (dtCountry != null && dtCountry.Rows.Count > 0)
         {
-            #region Get All Countries By UserID
-
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_Country_SelectAllByUserID";
-
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
-
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-            ddlCountryID.DataSource = objSDR;
+            ddlCountryID.DataSource = dtCountry;
             ddlCountryID.DataTextField = "CountryName";
             ddlCountryID.DataValueField = "CountryID";
             ddlCountryID.DataBind();
+        }
 
-            #endregion
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Get All Countries By UserID
 
         ddlCountryID.Items.Insert(0, new ListItem("Select Country...", "-1"));
     }
 
     public static void FillStateDropDownList(DropDownList ddlStateID, Label lblErrorMessage, Int32 UserID, Int32 CountryID)
     {
+        ddlStateID.Items.Clear();
+
         #region Get All States By UserID
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        StateBAL balState = new StateBAL();
+        DataTable dtState = new DataTable();
+
+        dtState = balState.SelectForDropdownList(CountryID, UserID);
+
+        if (dtState != null && dtState.Rows.Count > 0)
         {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_State_SelectDropDownListByUserID";
-
-            objCmd.Parameters.AddWithValue("@CountryID", CountryID);
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
-
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-            ddlStateID.DataSource = objSDR;
+            ddlStateID.DataSource = dtState;
             ddlStateID.DataTextField = "StateName";
             ddlStateID.DataValueField = "StateID";
             ddlStateID.DataBind();
         }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
 
-        #endregion
+        #endregion Get All States By UserID
 
         ddlStateID.Items.Insert(0, new ListItem("Select State...", "-1"));
     }
 
     public static void FillCityDropDownList(DropDownList ddlCityID, Label lblErrorMessage, Int32 UserID, Int32 CountryID, Int32 StateID)
     {
-        if (CountryID == 0 && StateID == 0)
+        ddlCityID.Items.Clear();
+
+        #region Get All Cities By StateID and UserID
+
+        CityBAL balCity = new CityBAL();
+        DataTable dtCity = new DataTable();
+
+        dtCity = balCity.SelectForDropdownList(StateID, UserID);
+
+        if (dtCity != null && dtCity.Rows.Count > 0)
         {
-            ddlCityID.Items.Clear();
+            ddlCityID.DataSource = dtCity;
+            ddlCityID.DataTextField = "CityName";
+            ddlCityID.DataValueField = "CityID";
+            ddlCityID.DataBind();
         }
-        else
-        {
-            SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-            try
-            {
-                #region Get All Cities By StateID and UserID
 
-                if (objConn.State != ConnectionState.Open)
-                    objConn.Open();
-
-                SqlCommand objCmd = objConn.CreateCommand();
-                objCmd.CommandType = CommandType.StoredProcedure;
-
-                objCmd.Parameters.AddWithValue("@UserID", UserID);
-
-                objCmd.CommandText = "PR_City_SelectDropDownListByUserID";
-                objCmd.Parameters.AddWithValue("@StateID", StateID);
-
-                SqlDataReader objSDR = objCmd.ExecuteReader();
-                ddlCityID.DataSource = objSDR;
-                ddlCityID.DataTextField = "CityName";
-                ddlCityID.DataValueField = "CityID";
-                ddlCityID.DataBind();
-
-                #endregion
-            }
-            catch (Exception ex)
-            {
-                lblErrorMessage.Text = ex.Message.ToString();
-            }
-            finally
-            {
-                if (objConn.State != ConnectionState.Closed)
-                    objConn.Close();
-            }
-
-        }
+        #endregion Get All Cities By StateID and UserID
 
         ddlCityID.Items.Insert(0, new ListItem("Select City...", "-1"));
     }

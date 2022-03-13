@@ -226,7 +226,7 @@ namespace MultiUserAddressBook.DAL
         #endregion SelectAllByUserID
 
         #region SelectForDropdownList
-        public DataTable SelectForDropdownList()
+        public DataTable SelectForDropdownList(SqlInt32 StateID, SqlInt32 UserID)
         {
             using (SqlConnection objConn = new SqlConnection(ConnectionString))
             {
@@ -236,10 +236,26 @@ namespace MultiUserAddressBook.DAL
                 {
                     try
                     {
+                        #region Prepare Command
+
+                        objCmd.CommandType = CommandType.StoredProcedure;
+                        objCmd.CommandText = "PR_City_SelectDropDownListByUserID";
+                        objCmd.Parameters.AddWithValue("@StateID", StateID);
+                        objCmd.Parameters.AddWithValue("@UserID", UserID);
+
+                        #endregion Prepare Command
+
+                        #region Read Data and return DataTable
 
                         DataTable dt = new DataTable();
 
+                        using (SqlDataReader objSDR = objCmd.ExecuteReader())
+                        {
+                            dt.Load(objSDR);
+                        }
                         return dt;
+
+                        #endregion Read Data and return DataTable
                     }
                     catch (SqlException sqlex)
                     {

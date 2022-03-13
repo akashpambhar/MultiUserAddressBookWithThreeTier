@@ -92,10 +92,10 @@ public class StateBAL
     #endregion SelectAllByUserID
 
     #region Select For Dropdown List
-    public DataTable SelectForDropdownList()
+    public DataTable SelectForDropdownList(SqlInt32 CountryID, SqlInt32 UserID)
     {
         StateDAL dalState = new StateDAL();
-        return dalState.SelectForDropdownList();
+        return dalState.SelectForDropdownList(CountryID, UserID);
     }
     #endregion Select For Dropdown List
 

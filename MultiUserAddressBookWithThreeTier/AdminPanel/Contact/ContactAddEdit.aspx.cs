@@ -33,43 +33,22 @@ public partial class AdminPanel_Contact_ContactAddEdit : System.Web.UI.Page
     }
     private void FillContactCategoryDropDownList(Int32 UserID)
     {
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        #region Get All Contact Categories By UserID
+
+        ContactCategoryBAL balContactCategory = new ContactCategoryBAL();
+        DataTable dtContactCategory = new DataTable();
+
+        dtContactCategory = balContactCategory.SelectAllByUserID(UserID);
+
+        if (dtContactCategory != null && dtContactCategory.Rows.Count > 0)
         {
-            #region Set up Connection and Command
-
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-
-            #endregion
-
-            #region Get All Contact Categories By UserID
-
-            objCmd.CommandText = "PR_ContactCategory_SelectAllByUserID";
-
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
-
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            cblContactCategoryID.DataSource = objSDR;
+            cblContactCategoryID.DataSource = dtContactCategory;
             cblContactCategoryID.DataTextField = "ContactCategoryName";
             cblContactCategoryID.DataValueField = "ContactCategoryID";
             cblContactCategoryID.DataBind();
+        }
 
-            #endregion
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Get All Contact Categories By UserID
 
         if (cblContactCategoryID.Items.Count == 0)
         {
