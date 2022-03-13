@@ -56,6 +56,8 @@ namespace MultiUserAddressBook.DAL
 
                         objCmd.ExecuteNonQuery();
 
+                        entState.StateID = Convert.ToInt32(objCmd.Parameters["@StateID"].Value);
+
                         return true;
                     }
                     catch (SqlException sqlex)

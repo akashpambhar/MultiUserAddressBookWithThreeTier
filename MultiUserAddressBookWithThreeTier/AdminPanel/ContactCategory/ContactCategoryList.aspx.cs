@@ -33,8 +33,11 @@ public partial class AdminPanel_ContactCategory_ContactCategoryList : System.Web
 
         dtContactCategory = balContactCategory.SelectAllByUserID(UserID);
 
-        gvContactCategoryList.DataSource = dtContactCategory;
-        gvContactCategoryList.DataBind();
+        if (dtContactCategory != null && dtContactCategory.Rows.Count > 0)
+        {
+            gvContactCategoryList.DataSource = dtContactCategory;
+            gvContactCategoryList.DataBind();
+        }
 
         #endregion Get All Contact Categories By UserID
     }
@@ -45,10 +48,6 @@ public partial class AdminPanel_ContactCategory_ContactCategoryList : System.Web
         if (e.CommandName == "DeleteRecord" && e.CommandArgument != null)
         {
             DeleteRecord(Convert.ToInt32(e.CommandArgument));
-            if (Session["UserID"] != null)
-            {
-                FillContactCategoryGridView(Convert.ToInt32(Session["UserID"].ToString()));
-            }
         }
 
         #endregion Handle Delete Action from GridView
@@ -61,13 +60,16 @@ public partial class AdminPanel_ContactCategory_ContactCategoryList : System.Web
 
         if (balContactCategory.Delete(ContactCategoryID))
         {
-            lblErrorMessage.Text = "Deleted Successfully!";
+            if (Session["UserID"] != null)
+            {
+                FillContactCategoryGridView(Convert.ToInt32(Session["UserID"].ToString()));
+            }
         }
         else
         {
             lblErrorMessage.Text = balContactCategory.Message;
         }
-        
+
         #endregion Delete ContactCategory By PK
     }
 }

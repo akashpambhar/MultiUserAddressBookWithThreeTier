@@ -56,6 +56,8 @@ namespace MultiUserAddressBook.DAL
 
                         objCmd.ExecuteNonQuery();
 
+                        entCountry.CountryID = Convert.ToInt32(objCmd.Parameters["@CountryID"].Value);
+
                         return true;
                     }
                     catch (SqlException sqlex)

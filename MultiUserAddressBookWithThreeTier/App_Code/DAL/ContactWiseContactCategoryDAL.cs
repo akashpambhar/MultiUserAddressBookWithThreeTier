@@ -55,6 +55,8 @@ namespace MultiUserAddressBook.DAL
 
                         objCmd.ExecuteNonQuery();
 
+                        entContactWiseContactCategory.ContactWiseContactCategoryID = Convert.ToInt32(objCmd.Parameters["@ContactWiseContactCategoryID"].Value);
+
                         return true;
                     }
                     catch (SqlException sqlex)
@@ -122,7 +124,7 @@ namespace MultiUserAddressBook.DAL
         #endregion Update Operation
 
         #region Delete Operation
-        public Boolean Delete(SqlInt32 ContactWiseContactCategoryID)
+        public Boolean DeleteByContactID(SqlInt32 ContactID)
         {
             using (SqlConnection objConn = new SqlConnection(ConnectionString))
             {
@@ -135,9 +137,9 @@ namespace MultiUserAddressBook.DAL
                         #region Prepare Command
 
                         objCmd.CommandType = CommandType.StoredProcedure;
-                        objCmd.CommandText = "PR_ContactWiseContactCategory_DeleteByPK";
+                        objCmd.CommandText = "PR_ContactWiseContactCategory_DeleteByContactID";
 
-                        objCmd.Parameters.AddWithValue("@ContactWiseContactCategoryID", ContactWiseContactCategoryID);
+                        objCmd.Parameters.AddWithValue("@ContactID", ContactID);
 
                         #endregion Prepare Command
 
@@ -167,8 +169,8 @@ namespace MultiUserAddressBook.DAL
 
         #region Select Operation
 
-        #region SelectAll
-        public DataTable SelectAll()
+        #region SelectAllByContactID
+        public DataTable SelectAllByContactID(SqlInt32 ContactID)
         {
             using (SqlConnection objConn = new SqlConnection(ConnectionString))
             {
@@ -181,7 +183,8 @@ namespace MultiUserAddressBook.DAL
                         #region Prepare Command
 
                         objCmd.CommandType = CommandType.StoredProcedure;
-                        objCmd.CommandText = "PR_ContactWiseContactCategory_SelectAll";
+                        objCmd.CommandText = "PR_ContactWiseContactCategory_SelectByContactID";
+                        objCmd.Parameters.AddWithValue("@ContactID", ContactID);
 
                         #endregion Prepare Command
 
@@ -215,7 +218,7 @@ namespace MultiUserAddressBook.DAL
                 }
             }
         }
-        #endregion SelectAll
+        #endregion SelectAllByContactID
 
         #region SelectForDropdownList
         public DataTable SelectForDropdownList()
@@ -282,13 +285,14 @@ namespace MultiUserAddressBook.DAL
                         {
                             while (objSDR.Read())
                             {
+                                if (!objSDR["ContactWiseContactCategoryID"].Equals(DBNull.Value))
+                                    entContactWiseContactCategory.ContactWiseContactCategoryID = Convert.ToInt32(objSDR["ContactWiseContactCategoryID"]);
+
                                 if (!objSDR["ContactID"].Equals(DBNull.Value))
                                     entContactWiseContactCategory.ContactID = Convert.ToInt32(objSDR["ContactID"]);
 
                                 if (!objSDR["ContactCategoryID"].Equals(DBNull.Value))
                                     entContactWiseContactCategory.ContactCategoryID = Convert.ToInt32(objSDR["ContactCategoryID"]);
-
-
 
                                 break;
                             }

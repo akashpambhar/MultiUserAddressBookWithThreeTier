@@ -58,6 +58,8 @@ namespace MultiUserAddressBook.DAL
 
                         objCmd.ExecuteNonQuery();
 
+                        entCity.CityID = Convert.ToInt32(objCmd.Parameters["@CityID"].Value);
+
                         return true;
                     }
                     catch (SqlException sqlex)

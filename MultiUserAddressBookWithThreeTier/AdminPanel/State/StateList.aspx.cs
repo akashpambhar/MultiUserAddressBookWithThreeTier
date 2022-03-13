@@ -33,8 +33,11 @@ public partial class AdminPanel_State_StateList : System.Web.UI.Page
 
         dtCountry = balState.SelectAllByUserID(UserID);
 
-        gvStateList.DataSource = dtCountry;
-        gvStateList.DataBind();
+        if (dtCountry != null && dtCountry.Rows.Count > 0)
+        {
+            gvStateList.DataSource = dtCountry;
+            gvStateList.DataBind();
+        }
 
         #endregion Get All States By UserID
     }
@@ -45,10 +48,6 @@ public partial class AdminPanel_State_StateList : System.Web.UI.Page
         if (e.CommandName == "DeleteRecord" && e.CommandArgument != null)
         {
             DeleteRecord(Convert.ToInt32(e.CommandArgument));
-            if (Session["UserID"] != null)
-            {
-                FillStateGridView(Convert.ToInt32(Session["UserID"].ToString()));
-            }
         }
 
         #endregion Handle Delete Action from GridView
@@ -60,7 +59,10 @@ public partial class AdminPanel_State_StateList : System.Web.UI.Page
         StateBAL balState = new StateBAL();
         if (balState.Delete(StateID))
         {
-            lblErrorMessage.Text = "Deleted Successfully!";
+            if (Session["UserID"] != null)
+            {
+                FillStateGridView(Convert.ToInt32(Session["UserID"].ToString()));
+            }
         }
         else
         {

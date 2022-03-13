@@ -83,13 +83,13 @@ public class ContactBAL
 
     #region Select Operation
 
-    #region SelectAll
-    public DataTable SelectAll()
+    #region SelectAllByUserID
+    public DataTable SelectAllByUserID(SqlInt32 UserID)
     {
         ContactDAL dalContact = new ContactDAL();
-        return dalContact.SelectAll();
+        return dalContact.SelectAllByUserID(UserID);
     }
-    #endregion SelectAll
+    #endregion SelectAllByUserID
 
     #region Select For Dropdown List
     public DataTable SelectForDropdownList()

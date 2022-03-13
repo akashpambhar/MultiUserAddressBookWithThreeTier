@@ -65,11 +65,11 @@ public class ContactWiseContactCategoryBAL
     #endregion Update Operation
 
     #region Delete Operation
-    public Boolean Delete(SqlInt32 ContactWiseContactCategoryID)
+    public Boolean DeleteByContactID(SqlInt32 ContactID)
     {
         ContactWiseContactCategoryDAL dalContactWiseContactCategory = new ContactWiseContactCategoryDAL();
 
-        if (dalContactWiseContactCategory.Delete(ContactWiseContactCategoryID))
+        if (dalContactWiseContactCategory.DeleteByContactID(ContactID))
         {
             return true;
         }
@@ -83,13 +83,13 @@ public class ContactWiseContactCategoryBAL
 
     #region Select Operation
 
-    #region SelectAll
-    public DataTable SelectAll()
+    #region SelectAllByContactID
+    public DataTable SelectAllByContactID(SqlInt32 ContactID)
     {
         ContactWiseContactCategoryDAL dalContactWiseContactCategory = new ContactWiseContactCategoryDAL();
-        return dalContactWiseContactCategory.SelectAll();
+        return dalContactWiseContactCategory.SelectAllByContactID(ContactID);
     }
-    #endregion SelectAll
+    #endregion SelectAllByContactID
 
     #region Select For Dropdown List
     public DataTable SelectForDropdownList()

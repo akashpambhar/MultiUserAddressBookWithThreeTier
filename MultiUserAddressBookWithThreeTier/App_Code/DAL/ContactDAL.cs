@@ -64,6 +64,8 @@ namespace MultiUserAddressBook.DAL
 
                         objCmd.ExecuteNonQuery();
 
+                        entContact.ContactID = Convert.ToInt32(objCmd.Parameters["@ContactID"].Value);
+
                         return true;
                     }
                     catch (SqlException sqlex)
@@ -164,12 +166,12 @@ namespace MultiUserAddressBook.DAL
                     }
                     catch (SqlException sqlex)
                     {
-                        Message = sqlex.InnerException.Message;
+                        Message = sqlex.Message;
                         return false;
                     }
                     catch (Exception ex)
                     {
-                        Message = ex.InnerException.Message;
+                        Message = ex.Message;
                         return false;
                     }
                     finally
@@ -184,8 +186,8 @@ namespace MultiUserAddressBook.DAL
 
         #region Select Operation
 
-        #region SelectAll
-        public DataTable SelectAll()
+        #region SelectAllByUserID
+        public DataTable SelectAllByUserID(SqlInt32 UserID)
         {
             using (SqlConnection objConn = new SqlConnection(ConnectionString))
             {
@@ -198,7 +200,9 @@ namespace MultiUserAddressBook.DAL
                         #region Prepare Command
 
                         objCmd.CommandType = CommandType.StoredProcedure;
-                        objCmd.CommandText = "PR_Contact_SelectAll";
+                        objCmd.CommandText = "PR_Contact_SelectAllByUserID";
+
+                        objCmd.Parameters.AddWithValue("@UserID", UserID);
 
                         #endregion Prepare Command
 
@@ -232,7 +236,7 @@ namespace MultiUserAddressBook.DAL
                 }
             }
         }
-        #endregion SelectAll
+        #endregion SelectAllByUserID
 
         #region SelectForDropdownList
         public DataTable SelectForDropdownList()

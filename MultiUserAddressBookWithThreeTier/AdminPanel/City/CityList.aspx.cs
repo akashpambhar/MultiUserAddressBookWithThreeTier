@@ -33,8 +33,11 @@ public partial class AdminPanel_City_CityList : System.Web.UI.Page
 
         dtCity = balCity.SelectAllByUserID(UserID);
 
-        gvCityList.DataSource = dtCity;
-        gvCityList.DataBind();
+        if (dtCity != null && dtCity.Rows.Count > 0)
+        {
+            gvCityList.DataSource = dtCity;
+            gvCityList.DataBind();
+        }
 
         #endregion Get All Cities By UserID
     }
@@ -45,10 +48,6 @@ public partial class AdminPanel_City_CityList : System.Web.UI.Page
         if (e.CommandName == "DeleteRecord" && e.CommandArgument != null)
         {
             DeleteRecord(Convert.ToInt32(e.CommandArgument));
-            if (Session["UserID"] != null)
-            {
-                FillCityGridView(Convert.ToInt32(Session["UserID"].ToString()));
-            }
         }
 
         #endregion Handle Delete Action from GridView
@@ -60,7 +59,10 @@ public partial class AdminPanel_City_CityList : System.Web.UI.Page
         CityBAL balCity = new CityBAL();
         if (balCity.Delete(CityID))
         {
-            lblErrorMessage.Text = "Deleted Successfully!";
+            if (Session["UserID"] != null)
+            {
+                FillCityGridView(Convert.ToInt32(Session["UserID"].ToString()));
+            }
         }
         else
         {

@@ -33,8 +33,11 @@ public partial class AdminPanel_Country_CountryList : System.Web.UI.Page
 
         dtCountry = balCountry.SelectAllByUserID(UserID);
 
-        gvCountryList.DataSource = dtCountry;
-        gvCountryList.DataBind();
+        if (dtCountry != null && dtCountry.Rows.Count > 0)
+        {
+            gvCountryList.DataSource = dtCountry;
+            gvCountryList.DataBind();
+        }
 
         #endregion Get All Countries By UserID
     }
@@ -46,7 +49,6 @@ public partial class AdminPanel_Country_CountryList : System.Web.UI.Page
         if (e.CommandName == "DeleteRecord" && e.CommandArgument != null)
         {
             DeleteRecord(Convert.ToInt32(e.CommandArgument));
-            FillCountryGridView(Convert.ToInt32(Session["UserID"].ToString()));
         }
 
         #endregion Handle Delete Action from GridView
@@ -58,7 +60,7 @@ public partial class AdminPanel_Country_CountryList : System.Web.UI.Page
         CountryBAL balCountry = new CountryBAL();
         if (balCountry.Delete(CountryID))
         {
-            lblErrorMessage.Text = "Deleted Successfully!";
+            FillCountryGridView(Convert.ToInt32(Session["UserID"].ToString()));
         }
         else
         {

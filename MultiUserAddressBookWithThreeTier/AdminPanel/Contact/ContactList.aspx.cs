@@ -21,41 +21,23 @@ public partial class AdminPanel_Contact_ContactList : System.Web.UI.Page
                 FillContactGridView(Convert.ToInt32(Session["UserID"].ToString()));
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     private void FillContactGridView(Int32 UserID)
     {
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            #region Get All Contacts By UserID
 
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        #region Get All Contacts By UserID
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_Contact_SelectAllByUserID";
+        ContactBAL balContact = new ContactBAL();
+        DataTable dtContact = new DataTable();
 
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
+        dtContact = balContact.SelectAllByUserID(UserID);
 
-            SqlDataReader objSDR = objCmd.ExecuteReader();
+        gvContactList.DataSource = dtContact;
+        gvContactList.DataBind();
 
-            gvContactList.DataSource = objSDR;
-            gvContactList.DataBind();
-
-            #endregion
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Get All Contacts By UserID
     }
     protected void gvContactList_RowCommand(object sender, GridViewCommandEventArgs e)
     {
@@ -64,39 +46,28 @@ public partial class AdminPanel_Contact_ContactList : System.Web.UI.Page
         if (e.CommandName == "DeleteRecord" && e.CommandArgument != null)
         {
             DeleteRecord(Convert.ToInt32(e.CommandArgument));
-            if (Session["UserID"] != null)
-            {
-                FillContactGridView(Convert.ToInt32(Session["UserID"].ToString()));
-            }
         }
 
-        #endregion
+        #endregion Handle Delete Action from GridView
     }
     private void DeleteRecord(Int32 ContactID)
     {
         #region Delete Contact By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            objConn.Open();
+        ContactBAL balContact = new ContactBAL();
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_Contact_DeleteByPK";
-            objCmd.Parameters.AddWithValue("@ContactID", ContactID);
-
-            objCmd.ExecuteNonQuery();
-        }
-        catch (Exception ex)
+        if (balContact.Delete(ContactID))
         {
-            lblErrorMessage.Text = ex.Message.ToString();
+            if (Session["UserID"] != null)
+            {
+                FillContactGridView(Convert.ToInt32(Session["UserID"].ToString()));
+            }
         }
-        finally
+        else
         {
-            objConn.Close();
+            lblErrorMessage.Text = balContact.Message;
         }
 
-        #endregion
+        #endregion Delete Contact By PK
     }
 }
