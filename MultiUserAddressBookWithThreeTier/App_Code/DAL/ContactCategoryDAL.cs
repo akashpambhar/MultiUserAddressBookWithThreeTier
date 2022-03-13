@@ -166,8 +166,8 @@ namespace MultiUserAddressBook.DAL
 
         #region Select Operation
 
-        #region SelectAll
-        public DataTable SelectAll()
+        #region SelectAllByUserID
+        public DataTable SelectAllByUserID(SqlInt32 UserID)
         {
             using (SqlConnection objConn = new SqlConnection(ConnectionString))
             {
@@ -180,7 +180,8 @@ namespace MultiUserAddressBook.DAL
                         #region Prepare Command
 
                         objCmd.CommandType = CommandType.StoredProcedure;
-                        objCmd.CommandText = "PR_ContactCategory_SelectAll";
+                        objCmd.CommandText = "PR_ContactCategory_SelectAllByUserID";
+                        objCmd.Parameters.AddWithValue("@UserID", UserID);
 
                         #endregion Prepare Command
 
@@ -212,7 +213,7 @@ namespace MultiUserAddressBook.DAL
                 }
             }
         }
-        #endregion SelectAll
+        #endregion SelectAllByUserID
 
         #region SelectForDropdownList
         public DataTable SelectForDropdownList()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiUserAddressBook.ENT;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -21,11 +22,11 @@ public partial class AdminPanel_ContactCategory_ContactCategoryAddEdit : System.
             {
                 if (Page.RouteData.Values["ContactCategoryID"] != null)
                 {
-                    LoadControls();
+                    LoadControls(Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["ContactCategoryID"].ToString())));
                 }
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     protected void btnSave_Click(object sender, EventArgs e)
@@ -46,84 +47,52 @@ public partial class AdminPanel_ContactCategory_ContactCategoryAddEdit : System.
 
         #endregion Server Side Validation
 
-        #region Local Variables
-
-        SqlString strContactCategoryName = SqlString.Null;
-
-        #endregion Local Variables
-
         #region Gather Information
+
+        ContactCategoryENT entContactCategory = new ContactCategoryENT();
 
         if (txtContactCategoryName.Text.Trim() != "")
         {
-            strContactCategoryName = txtContactCategoryName.Text.Trim();
+            entContactCategory.ContactCategoryName = txtContactCategoryName.Text.Trim();
         }
 
         #endregion Gather Information
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        #region Check and Perform Insert or Update ContactCategory
+
+        ContactCategoryBAL balContactCategory = new ContactCategoryBAL();
+
+        if (Page.RouteData.Values["ContactCategoryID"] != null)
         {
-            #region Open Connection and Set up Command
+            entContactCategory.ContactCategoryID = Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["ContactCategoryID"].ToString()));
 
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-
-            #endregion
-
-            #region Common parameters to pass
-
-            objCmd.Parameters.AddWithValue("@ContactCategoryName", strContactCategoryName);
-
-            #endregion
-
-            #region Check and Perform Insert or Update ContactCategory
-
-            if (Page.RouteData.Values["ContactCategoryID"] != null)
+            if (balContactCategory.Update(entContactCategory))
             {
-                objCmd.CommandText = "PR_ContactCategory_UpdateByPK";
-                objCmd.Parameters.AddWithValue("@ContactCategoryID", Page.RouteData.Values["ContactCategoryID"]);
+                lblErrorMessage.Text = "Updated Successfully!";
             }
             else
             {
-                objCmd.CommandText = "PR_ContactCategory_Insert";
-                if (Session["UserID"] != null)
-                {
-                    objCmd.Parameters.AddWithValue("@UserID", Convert.ToInt32(Session["UserID"].ToString().Trim()));
-                }
-                objCmd.Parameters.AddWithValue("@CreationDate", DateTime.Now);
+                lblErrorMessage.Text = balContactCategory.Message;
+            }
+        }
+        else
+        {
+            if (Session["UserID"] != null)
+            {
+                entContactCategory.UserID = Convert.ToInt32(Session["UserID"].ToString().Trim());
             }
 
-            objCmd.ExecuteNonQuery();
-
-            #endregion
-
-            lblErrorMessage.Text = "Data recorded successfully!";
-        }
-        catch (SqlException sqlEx)
-        {
-            #region Set Error Message
-
-            if (sqlEx.Number == 2627)
+            if (balContactCategory.Insert(entContactCategory))
             {
-                lblErrorMessage.Text = "You have already created a Contact Category with same name";
-                clearFields();
+                lblErrorMessage.Text = "Inserted Successfully!";
             }
             else
             {
-                lblErrorMessage.Text = sqlEx.Message.ToString();
+                lblErrorMessage.Text = balContactCategory.Message;
             }
+        }
 
-            #endregion
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+        #endregion Check and Perform Insert or Update ContactCategory
 
         #region Clear Fields or Redirect
 
@@ -146,52 +115,24 @@ public partial class AdminPanel_ContactCategory_ContactCategoryAddEdit : System.
     {
         Response.Redirect("~/AB/AdminPanel/ContactCategory");
     }
-    private void LoadControls()
+    private void LoadControls(Int32 ContactCategoryID)
     {
-        string ContactCategoryID = EncryptDecrypt.Base64Decode(Page.RouteData.Values["ContactCategoryID"].ToString());
+        #region Get ContactCategory By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        ContactCategoryENT entContactCategory = new ContactCategoryENT();
+        ContactCategoryBAL balContactCategory = new ContactCategoryBAL();
+
+        entContactCategory = balContactCategory.SelectByPK(ContactCategoryID);
+
+        #endregion Get ContactCategory By PK
+
+        #region Set obtained values to controls
+
+        if (!entContactCategory.ContactCategoryName.IsNull)
         {
-            #region Get ContactCategory By PK
-
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_ContactCategory_SelectByPK";
-
-            objCmd.Parameters.AddWithValue("@ContactCategoryID", ContactCategoryID);
-
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            #endregion
-
-            #region Set obtained values to controls
-
-            if (objSDR.HasRows)
-            {
-                while (objSDR.Read())
-                {
-                    if (!objSDR["ContactCategoryName"].Equals(DBNull.Value))
-                    {
-                        txtContactCategoryName.Text = objSDR["ContactCategoryName"].ToString();
-                    }
-                    break;
-                }
-            }
-
-            #endregion
+            txtContactCategoryName.Text = entContactCategory.ContactCategoryName.ToString();
         }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
+
+        #endregion Set obtained values to controls
     }
 }

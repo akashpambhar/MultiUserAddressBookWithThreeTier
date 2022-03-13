@@ -21,41 +21,22 @@ public partial class AdminPanel_ContactCategory_ContactCategoryList : System.Web
                 FillContactCategoryGridView(Convert.ToInt32(Session["UserID"].ToString()));
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     private void FillContactCategoryGridView(Int32 UserID)
     {
         #region Get All Contact Categories By UserID
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        ContactCategoryBAL balContactCategory = new ContactCategoryBAL();
+        DataTable dtContactCategory = new DataTable();
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_ContactCategory_SelectAllByUserID";
+        dtContactCategory = balContactCategory.SelectAllByUserID(UserID);
 
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
+        gvContactCategoryList.DataSource = dtContactCategory;
+        gvContactCategoryList.DataBind();
 
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            gvContactCategoryList.DataSource = objSDR;
-            gvContactCategoryList.DataBind();
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
-
-        #endregion
+        #endregion Get All Contact Categories By UserID
     }
     protected void gvContactCategoryList_RowCommand(object sender, GridViewCommandEventArgs e)
     {
@@ -70,35 +51,23 @@ public partial class AdminPanel_ContactCategory_ContactCategoryList : System.Web
             }
         }
 
-        #endregion
+        #endregion Handle Delete Action from GridView
     }
     private void DeleteRecord(Int32 ContactCategoryID)
     {
         #region Delete ContactCategory By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        ContactCategoryBAL balContactCategory = new ContactCategoryBAL();
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_ContactCategory_DeleteByPK";
-            objCmd.Parameters.AddWithValue("@ContactCategoryID", ContactCategoryID);
-
-            objCmd.ExecuteNonQuery();
-        }
-        catch (Exception ex)
+        if (balContactCategory.Delete(ContactCategoryID))
         {
-            lblErrorMessage.Text = ex.Message.ToString();
+            lblErrorMessage.Text = "Deleted Successfully!";
         }
-        finally
+        else
         {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
+            lblErrorMessage.Text = balContactCategory.Message;
         }
-
-        #endregion
+        
+        #endregion Delete ContactCategory By PK
     }
 }
