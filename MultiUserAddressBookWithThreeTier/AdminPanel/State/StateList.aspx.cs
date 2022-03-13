@@ -21,41 +21,22 @@ public partial class AdminPanel_State_StateList : System.Web.UI.Page
                 FillStateGridView(Convert.ToInt32(Session["UserID"].ToString()));
             }
 
-            #endregion
+            #endregion Check Session UserID and Load Controls
         }
     }
     private void FillStateGridView(Int32 UserID)
     {
         #region Get All States By UserID
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
-        {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
+        StateBAL balState = new StateBAL();
+        DataTable dtCountry = new DataTable();
 
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_State_SelectAllByUserID";
+        dtCountry = balState.SelectAllByUserID(UserID);
 
-            objCmd.Parameters.AddWithValue("@UserID", UserID);
+        gvStateList.DataSource = dtCountry;
+        gvStateList.DataBind();
 
-            SqlDataReader objSDR = objCmd.ExecuteReader();
-
-            gvStateList.DataSource = objSDR;
-            gvStateList.DataBind();
-        }
-        catch (Exception ex)
-        {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
-        }
-
-        #endregion
+        #endregion Get All States By UserID
     }
     protected void gvStateList_RowCommand(object sender, GridViewCommandEventArgs e)
     {
@@ -70,35 +51,22 @@ public partial class AdminPanel_State_StateList : System.Web.UI.Page
             }
         }
 
-        #endregion
+        #endregion Handle Delete Action from GridView
     }
     private void DeleteRecord(Int32 StateID)
     {
         #region Delete State By PK
 
-        SqlConnection objConn = new SqlConnection(ConfigurationManager.ConnectionStrings["AddressBookConnectionString"].ConnectionString);
-        try
+        StateBAL balState = new StateBAL();
+        if (balState.Delete(StateID))
         {
-            if (objConn.State != ConnectionState.Open)
-                objConn.Open();
-
-            SqlCommand objCmd = objConn.CreateCommand();
-            objCmd.CommandType = CommandType.StoredProcedure;
-            objCmd.CommandText = "PR_State_DeleteByPK";
-            objCmd.Parameters.AddWithValue("@StateID", StateID);
-
-            objCmd.ExecuteNonQuery();
+            lblErrorMessage.Text = "Deleted Successfully!";
         }
-        catch (Exception ex)
+        else
         {
-            lblErrorMessage.Text = ex.Message.ToString();
-        }
-        finally
-        {
-            if (objConn.State != ConnectionState.Closed)
-                objConn.Close();
+            lblErrorMessage.Text = balState.Message;
         }
 
-        #endregion
+        #endregion Delete State By PK
     }
 }
