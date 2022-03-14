@@ -26,7 +26,6 @@ public partial class AdminPanel_Contact_ContactList : System.Web.UI.Page
     }
     private void FillContactGridView(Int32 UserID)
     {
-
         #region Get All Contacts By UserID
 
         ContactBAL balContact = new ContactBAL();
@@ -34,8 +33,11 @@ public partial class AdminPanel_Contact_ContactList : System.Web.UI.Page
 
         dtContact = balContact.SelectAllByUserID(UserID);
 
-        gvContactList.DataSource = dtContact;
-        gvContactList.DataBind();
+        if (dtContact != null && dtContact.Rows.Count > 0)
+        {
+            gvContactList.DataSource = dtContact;
+            gvContactList.DataBind();
+        }
 
         #endregion Get All Contacts By UserID
     }

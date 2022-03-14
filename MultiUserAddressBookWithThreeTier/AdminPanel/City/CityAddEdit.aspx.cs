@@ -93,10 +93,7 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
 
         if (Page.RouteData.Values["CityID"] != null)
         {
-            if (Page.RouteData.Values["CityID"] != null)
-            {
-                entCity.CityID = Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["CityID"].ToString()));
-            }
+            entCity.CityID = Convert.ToInt32(EncryptDecrypt.Base64Decode(Page.RouteData.Values["CityID"].ToString()));
 
             if (balCity.Update(entCity))
             {
@@ -106,6 +103,8 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
             {
                 lblErrorMessage.Text = balCity.Message;
             }
+
+            Response.Redirect("~/AB/AdminPanel/City");
         }
         else
         {
@@ -122,22 +121,11 @@ public partial class AdminPanel_City_CityAddEdit : System.Web.UI.Page
             {
                 lblErrorMessage.Text = balCity.Message;
             }
+
+            clearFields();
         }
 
         #endregion Check and Perform Insert or Update City
-
-        #region Clear Fields or Redirect
-
-        if (Page.RouteData.Values["CityID"] == null)
-        {
-            clearFields();
-        }
-        else
-        {
-            Response.Redirect("~/AB/AdminPanel/City");
-        }
-
-        #endregion Clear Fields or Redirect
     }
     private void clearFields()
     {
