@@ -58,6 +58,13 @@ public partial class AdminPanel_Contact_ContactList : System.Web.UI.Page
 
         ContactBAL balContact = new ContactBAL();
 
+        ContactWiseContactCategoryBAL balContactWiseContactCategory = new ContactWiseContactCategoryBAL();
+
+        if (!balContactWiseContactCategory.DeleteByContactID(ContactID))
+        {
+            lblErrorMessage.Text = balContactWiseContactCategory.Message;
+        }
+
         if (balContact.Delete(ContactID))
         {
             if (Session["UserID"] != null)
